@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIP ANALYSIS — testes de segurança</title>
+<link rel="stylesheet" href="lib/leaflet/leaflet.css">
+<style>
+  :root { --tinta: #0d1b2e; --muted: #5e6d82; --borda: #d3dce8; --ok: #187a5e; --falha: #b3121d; --fundo: #f4f6fa; }
+  body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--tinta); background: var(--fundo); }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 18px; }
+  #resumo { padding: 12px 14px; border-radius: 8px; background: #fff; border: 1px solid var(--borda); border-left: 6px solid var(--muted); font-weight: 700; margin-bottom: 14px; }
+  #resumo.ok { border-left-color: var(--ok); } #resumo.falha { border-left-color: var(--falha); }
+  .teste { background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+  .teste .cab { display: grid; grid-template-columns: 54px 1fr auto; gap: 10px; align-items: baseline; }
+  .teste .id { font-weight: 800; color: var(--muted); }
+  .teste .res { font-weight: 800; font-size: 12px; padding: 2px 8px; border-radius: 999px; color: #fff; background: var(--muted); }
+  .teste.ok .res { background: var(--ok); } .teste.falha .res { background: var(--falha); }
+  .teste ul { margin: 6px 0 0 64px; padding: 0; list-style: none; font-size: 12.5px; }
+  .teste li { padding: 1px 0; } .teste li.x { color: var(--falha); font-weight: 600; } .teste li.v { color: var(--muted); }
+  .teste li.v::before { content: "✓ "; color: var(--ok); } .teste li.x::before { content: "✗ "; }
+  .teste pre { margin: 6px 0 0 64px; font-size: 11.5px; color: var(--falha); white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Testes de segurança das conclusões</h1>
+  <p class="sub">Cada teste simula fontes oficiais (respondendo, falhando ou devolvendo lista parcial) e confere que falha nunca vira ausência. Nada aqui consulta a internet.</p>
+  <div id="resumo">Rodando…</div>
+  <div id="lista"></div>
+</main>
+<script src="lib/leaflet/leaflet.js"></script>
+<script src="lib/turf.min.js"></script>
+<script src="lib/proj4.js"></script>
+<script src="js/util.js"></script>
+<script src="js/catalogo.js"></script>
+<script src="js/catalogo-extra.js"></script>
+<script src="js/mapa.js"></script>
+<script src="js/filtros.js"></script>
+<script src="js/analise.js"></script>
+<script src="js/alvo.js"></script>
+<script src="js/requerimento.js"></script>
+<script src="js/favorabilidade.js"></script>
+<script src="js/local.js"></script>
+<script src="js/regras.js"></script>
+<script src="js/relatorio.js"></script>
+<script src="js/testes.js"></script>
+</body>
+</html>

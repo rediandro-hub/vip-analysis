@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIP ANALYSIS · Vip Air</title>
+<link rel="icon" href="assets/icone-64.png">
+<link rel="apple-touch-icon" href="assets/icone-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="lib/leaflet/leaflet.css">
+<link rel="stylesheet" href="lib/geoman/leaflet-geoman.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="topo">
+  <a class="marca" href="#" title="VIP ANALYSIS — Vip Air"><img src="assets/logo-vertical.png" alt="Vip Air Analysis"></a>
+  <form class="busca" id="formBusca" autocomplete="off">
+    <input id="campoCoord" type="text" placeholder="Coordenada — decimal, GMS ou UTM (ex.: -7.0812, -36.8423)" title="Aceita: -7.0812, -36.8423 · 7°04'52&quot;S 36°50'32&quot;O · 24S 738333 9216722" aria-label="Coordenada">
+    <button type="submit" class="btn btn-pri">Localizar</button>
+  </form>
+  <div class="ferramentas" role="toolbar" aria-label="Ferramentas">
+    <button class="fer" data-desenho="CircleMarker" title="Marcar um ponto"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.2"/><path d="M10 1.5v4M10 14.5v4M1.5 10h4M14.5 10h4" fill="none"/></svg><span>Ponto</span></button>
+    <button class="fer" data-desenho="Polygon" title="Desenhar polígono — clique nos vértices e no primeiro para fechar"><svg viewBox="0 0 20 20"><path d="M4 7 10 3l6 4-2 9H6z" fill="none"/></svg><span>Polígono</span></button>
+    <button class="fer" data-desenho="Rectangle" title="Desenhar retângulo"><svg viewBox="0 0 20 20"><rect x="3.5" y="5" width="13" height="10" fill="none"/></svg><span>Retângulo</span></button>
+    <button class="fer" data-desenho="Circle" title="Desenhar círculo — clique no centro e clique de novo para definir o raio"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none"/><path d="M10 10h7" fill="none"/></svg><span>Círculo</span></button>
+    <label class="fer" title="Importar KML, KMZ, GeoJSON ou shapefile (.zip)"><svg viewBox="0 0 20 20"><path d="M10 13V3M6 7l4-4 4 4M4 13v4h12v-4" fill="none"/></svg><span>Importar</span><input type="file" id="arquivo" accept=".kml,.kmz,.geojson,.json,.zip" hidden></label>
+    <button class="fer" id="btnEditar" title="Editar vértices da área"><svg viewBox="0 0 20 20"><path d="M4 16l1-4 8-8 3 3-8 8z" fill="none"/></svg><span>Editar</span></button>
+    <span class="sep"></span>
+    <button class="fer" id="btnRegua" title="Régua — medir distância, rumo e área (Esc cancela, Enter conclui)"><svg viewBox="0 0 20 20"><path d="M2.5 13.5 13.5 2.5l4 4-11 11z M6 10l1.5 1.5M8.5 7.5 10 9M11 5l1.5 1.5" fill="none"/></svg><span>Régua</span></button>
+    <button class="fer" id="btnBrasil" title="Ver o Brasil inteiro"><svg viewBox="0 0 20 20"><path d="M3 9.5 10 3l7 6.5M5 8v8.5h10V8" fill="none"/></svg><span>Brasil</span></button>
+    <button class="fer" id="btnLimpar" title="Limpar área, medidas e resultados"><svg viewBox="0 0 20 20"><path d="M5 5l10 10M15 5 5 15" fill="none"/></svg><span>Limpar</span></button>
+  </div>
+  <div class="status-srv" id="statusSrv" title="">● verificando…</div>
+  <button class="fer tema" id="btnTema" title="Alternar tema claro/escuro"><svg viewBox="0 0 20 20"><path d="M10 3a7 7 0 1 0 7 7 5.5 5.5 0 0 1-7-7z"/></svg></button>
+</header>
+
+<main class="corpo">
+  <aside class="painel">
+    <nav class="abas" role="tablist">
+      <button class="aba ativa" data-aba="analise">Análise</button>
+      <button class="aba" data-aba="camadas">Camadas <span class="cont" id="contAtivas"></span></button>
+      <button class="aba" data-aba="sobre">Sobre</button>
+    </nav>
+
+    <section class="conteudo ativa" id="aba-analise">
+      <div class="cartao" id="cartaoAOI" hidden>
+        <div class="titulo-cartao">Área de interesse</div>
+        <div id="infoAOI"></div>
+      </div>
+
+      <div class="cartao">
+        <div class="titulo-cartao linha-tit">Finalidade <button class="mini" id="btnEstudos" title="Estudos e relatórios guardados neste navegador">estudos salvos <b id="contEstudos"></b></button></div>
+        <select id="finalidade"></select>
+        <div class="alvo-box" id="alvoBox" hidden>
+          <div class="alvo-perg">O que você quer saber?</div>
+          <div class="alvo-opcoes">
+            <label class="alvo-op"><input type="radio" name="alvoModo" value="geral"><span><b>Varredura geral</b><small>tudo o que existe na área e no entorno</small></span></label>
+            <label class="alvo-op"><input type="radio" name="alvoModo" value="alvo"><span><b>Um bem específico</b><small>mineral, minério ou gema</small></span></label>
+            <label class="alvo-op alvo-op-larga"><input type="radio" name="alvoModo" value="requerimento"><span><b>Local para requerimento</b><small>verifica todos os impedimentos em todas as camadas para saber se dá para requerer a área na ANM</small></span></label>
+          </div>
+          <div class="alvo-campo" id="reqCampo" hidden>
+            <input type="text" id="pReqSubs" list="listaMinerais" placeholder="Substância a requerer (ex.: turmalina, ouro) — define o limite de área" autocomplete="off">
+            <label>Área pretendida para ponto (ha) — vazio = máximo permitido para a substância<input type="number" id="pReqHa" min="1" max="10000" step="1" placeholder="automático"></label>
+            <p class="pequeno muted">Para ponto, a análise usa um quadrado com lados N-S e L-O dessa área, centrado no ponto. Para polígono, usa a área desenhada ou importada.</p>
+          </div>
+          <div class="alvo-campo" id="alvoCampo" hidden>
+            <input type="text" id="pAlvo" list="listaMinerais" placeholder="Qual? ex.: turmalina, ouro, lítio, berilo" autocomplete="off">
+            <datalist id="listaMinerais"></datalist>
+            <label>Raio do mapa de ocorrências do alvo (km)<input type="number" id="pRaioAlvo" min="1" max="200" step="5"></label>
+          </div>
+        </div>
+        <label>Finalidade descrita (vai para o relatório)<textarea id="pFinalidadeTexto" rows="2" maxlength="2000" placeholder="Ex.: avaliar restrições e indícios minerais para requerer pesquisa de turmalina."></textarea></label>
+        <div class="titulo-cartao mt">Parâmetros por setor</div>
+        <div class="setores" id="setores">
+          <div class="setor aberto" data-setor="energia">
+            <div class="setor-cab"><label class="chk"><input type="checkbox" data-setor-on="energia" checked> Energia e Infraestrutura</label><span class="setor-n"></span><button type="button" class="seta" aria-label="Mostrar parâmetros"></button></div>
+            <div class="setor-corpo">
+              <label>Raio de busca de subestações, linhas e usinas (km)<input type="number" id="pRaioEnergia" min="1" step="1"></label>
+              <label class="chk"><input type="checkbox" id="pOSM"> Incluir redes de distribuição / média tensão do OpenStreetMap</label>
+            </div>
+          </div>
+          <div class="setor aberto" data-setor="mineracao">
+            <div class="setor-cab"><label class="chk"><input type="checkbox" data-setor-on="mineracao" checked> Mineração</label><span class="setor-n"></span><button type="button" class="seta" aria-label="Mostrar parâmetros"></button></div>
+            <div class="setor-corpo">
+              <label>Vizinhança de processos ANM (km)<input type="number" id="pRaioAnm" min="0" step="0.5"></label>
+              <label>Raio de ocorrências minerais (km)<input type="number" id="pRaioOc" min="1" step="1"></label>
+              <label>Titulares de interesse (separe por vírgula)<input type="text" id="pTitulares" placeholder="ex.: nome da sua empresa"></label>
+              <label class="chk"><input type="checkbox" id="pBateia"> Rodar a Bateia junto (geologia, geoquímica, geofísica e potencial mineral)</label>
+              <label>Raio da Bateia para pontos (km)<input type="number" id="pRaioBateia" min="0.5" step="0.5"></label>
+            </div>
+          </div>
+          <div class="setor" data-setor="fundiario">
+            <div class="setor-cab"><label class="chk"><input type="checkbox" data-setor-on="fundiario" checked> Fundiário</label><span class="setor-n"></span><button type="button" class="seta" aria-label="Mostrar parâmetros"></button></div>
+            <div class="setor-corpo">
+              <div class="pequeno muted">Estado de trabalho: <b id="ufAtual">—</b> (definido pela área; pode ser trocado em Camadas). SIGEF/SNCI desta UF: <span id="statusBases">—</span></div>
+            </div>
+          </div>
+          <div class="setor" data-setor="ambiental">
+            <div class="setor-cab"><label class="chk"><input type="checkbox" data-setor-on="ambiental" checked> Ambiental</label><span class="setor-n"></span><button type="button" class="seta" aria-label="Mostrar parâmetros"></button></div>
+            <div class="setor-corpo">
+              <label>Raio de busca de unidades de conservação (km)<input type="number" id="pRaioAmb" min="1" step="1"></label>
+              <div class="pequeno muted">Cavernas usam a faixa legal de 250 m; cursos d’água, a APP mínima de 30 m.</div>
+            </div>
+          </div>
+          <div class="setor" data-setor="extras">
+            <div class="setor-cab"><span class="setor-tit">Camadas extras na análise</span><span class="setor-n" id="nExtras"></span><button type="button" class="seta" aria-label="Mostrar parâmetros"></button></div>
+            <div class="setor-corpo">
+              <div class="pequeno" id="resumoPacote"></div>
+              <label class="chk"><input type="checkbox" id="pExtrasLigadas"> Incluir as camadas ligadas no mapa</label>
+              <div class="linha mt"><button type="button" class="btn" id="btnEscolherExtras">Escolher camadas…</button><span class="pequeno muted" id="resumoExtras"></span></div>
+              <label>Entorno pesquisado nas camadas extras<select id="pEntorno" data-num="1"><option value="0">somente a área</option><option value="1">1 km</option><option value="2">2 km</option><option value="5">5 km</option><option value="10">10 km</option><option value="25">25 km</option></select></label>
+              <label class="chk"><input type="checkbox" id="pVarredura"> Varredura completa: todas as camadas consultáveis do catálogo (a análise fica 3 a 4 vezes mais demorada)</label>
+              <div class="pequeno muted">As camadas fixas entram sempre, com os raios de cada setor; o pacote da finalidade entra sozinho; camadas estaduais (ex.: INEA no Rio de Janeiro) entram quando a área está no estado. Aqui você soma qualquer outra, com o mesmo teste dentro / entorno / fora.</div>
+            </div>
+          </div>
+          <div class="setor" data-setor="geral">
+            <div class="setor-cab"><span class="setor-tit">Geral</span><span class="setor-n"></span><button type="button" class="seta" aria-label="Mostrar parâmetros"></button></div>
+            <div class="setor-corpo">
+              <label>Raio em torno de um ponto (m) — 0 analisa só o ponto<input type="number" id="pRaioPonto" min="0" step="50"></label>
+              <label>Responsável pelo relatório<input type="text" id="pResponsavel"></label>
+            </div>
+          </div>
+        </div>
+        <div class="pequeno resumo-fontes" id="resumoFontes"></div>
+        <div class="acoes-analise">
+          <button class="btn btn-pri" id="btnAnalisar" disabled>Analisar área</button>
+          <button class="btn btn-rel" id="btnRelatorioNovo" disabled title="Abre uma nova aba e gera o relatório nela">Gerar relatório ↗</button>
+        </div>
+        <div class="pequeno muted dica-area" id="dicaArea">Defina a área pelas ferramentas do topo: <b>Ponto</b>, <b>Polígono</b>, <b>Retângulo</b>, <b>Círculo</b> ou <b>Importar</b> (KML/KMZ/GeoJSON/shapefile).</div>
+        <div class="progresso" id="progresso" hidden><div class="barra"><i></i></div><span></span></div>
+      </div>
+
+      <div id="resultados"></div>
+      <div class="acoes-saida" id="acoesSaida" hidden>
+        <button class="btn btn-pri" id="btnRelatorio">Gerar relatório ↗</button>
+        <button class="btn" id="btnSlides" title="Monta uma apresentação enxuta do relatório, para mostrar ou salvar em PDF e PowerPoint">Gerar slides ↗</button>
+        <button class="btn" id="btnPacote">Pacote de evidências</button>
+        <button class="btn" id="btnGeojson">Exportar GeoJSON</button>
+      </div>
+    </section>
+
+    <section class="conteudo" id="aba-camadas">
+      <div class="cartao">
+        <div class="titulo-cartao">Estado de trabalho</div>
+        <div class="linha"><select id="selUF"></select><label class="chk" title="Recorta todas as camadas no limite do estado de trabalho"><input type="checkbox" id="chkFiltroUF"> Mostrar só este estado</label></div>
+        <div class="bases" id="painelBases"></div>
+      </div>
+      <div class="cartao">
+        <div class="linha"><input type="search" id="filtroCamadas" placeholder="Procurar camada, órgão ou tema…"><label class="chk"><input type="checkbox" id="soLigadas"> Só ligadas</label></div>
+        <div class="linha"><select id="filtroSetor"><option value="">Todos os setores</option></select><label class="chk"><input type="checkbox" id="outrasUFs"> Camadas de outros estados</label></div>
+        <div class="linha pequeno"><a href="#" id="desligarTodas">Desligar todas</a><span class="muted" id="totalCamadas"></span></div>
+        <div id="listaCamadas"></div>
+        <details class="cam-setor cam-ferr" id="cartaoTopo" data-ferr="topo"><summary><i class="cs-cor" style="background:#9a6b2f"></i><span class="cs-nome">Topografia calculada</span><span class="cs-n" id="topoN"></span></summary>
+          <div class="ferr-corpo">
+        <label class="chk"><input type="checkbox" data-topo="curvas"> Curvas de nível</label>
+        <label class="chk"><input type="checkbox" data-topo="sombreado"> Relevo sombreado</label>
+        <label class="chk"><input type="checkbox" data-topo="declividade"> Declividade (%)</label>
+        <div class="linha mt"><label class="sem-mt">Intervalo das curvas<select id="topoIntervalo"><option value="5">5 m</option><option value="10">10 m</option><option value="20">20 m</option><option value="50">50 m</option><option value="100">100 m</option></select></label><label class="sem-mt">Opacidade<input type="range" id="topoOpacidade" min="0.2" max="1" step="0.05"></label></div>
+        <div class="topo-legenda" id="topoLegenda" hidden></div>
+        <div class="pequeno muted" id="topoStatus"></div>
+        <div class="pequeno muted">Estimado do modelo de elevação (Mapzen/USGS, AWS Open Data). O intervalo das curvas não é precisão altimétrica. Só visualização — não entra na análise.</div>
+          </div>
+        </details>
+        <details class="cam-setor cam-ferr" id="cartaoBDGD" data-ferr="bdgd"><summary><i class="cs-cor" style="background:#e07a00"></i><span class="cs-nome">Rede de distribuição — BDGD (ANEEL)</span><span class="cs-n" id="bdgdN"></span></summary>
+          <div class="ferr-corpo"><div id="painelBDGD"></div></div>
+        </details>
+      </div>
+      <div class="cartao">
+        <details class="pendencias"><summary class="titulo-cartao">Integrações pendentes ou fora do ar</summary><div id="listaPendentes"></div></details>
+      </div>
+    </section>
+
+    <section class="conteudo" id="aba-sobre">
+      <div class="cartao texto" id="sobre"></div>
+    </section>
+  </aside>
+
+  <section class="principal">
+    <nav class="abas-principal">
+      <button class="ap ativa" data-vista="mapa">Mapa</button>
+      <button class="ap" data-vista="bateia">Mineração · Bateia <span class="badge" id="badgeBateia"></span></button>
+      <div class="ap-base" id="apBase"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 5.5 7.5 3.5l5 2 5-2v11l-5 2-5-2-5 2z M7.5 3.5v11 M12.5 5.5v11" fill="none"/></svg><label for="selBase">Mapa-base</label><select id="selBase"></select><button class="mini" id="lnkGoogle" title="Imagens do Google: chave e teto de uso">Google</button><span class="google-uso" id="googleUso"></span></div>
+      <form class="ap-proc" id="formProc" autocomplete="off" role="search" title="Buscar processo minerário (SIGMINE/ANM) pelo número, titular ou empresa"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5" fill="none"/><path d="M12.3 12.3 17 17" fill="none"/></svg><input id="campoProc" type="search" placeholder="Processo, titular ou empresa" aria-label="Buscar processo minerário pelo número, titular ou empresa"><select id="procUF" aria-label="Onde buscar"><option value="">Brasil</option><option value="uf">Só UF</option></select><button type="submit" class="mini">Buscar</button></form>
+      <button class="btn-filtro" id="btnFiltros" title="Filtros: setor, camada e condições (fase, substância, mineral…)"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 4h15l-5.8 6.8v5.2l-3.4-1.7v-3.5z" fill="none"/></svg><span>Filtros</span><span class="badge-filtro" id="badgeFiltros"></span></button>
+    </nav>
+    <div class="vista ativa" id="vista-mapa">
+      <div id="mapa" aria-label="Mapa"></div>
+      <aside class="ficha" id="ficha" hidden><div class="ficha-cab"><b id="fichaTitulo">Informações do ponto</b><button class="x" id="fechaFicha" aria-label="Fechar">×</button></div><div class="ficha-corpo" id="fichaCorpo"></div></aside>
+      <aside class="ficha painel-proc" id="painelProc" hidden><div class="ficha-cab"><b id="procTitulo">Processos minerários</b><span class="esp"></span><button class="mini" id="limparProc" title="Tirar os processos do mapa">limpar</button><button class="x" id="fechaProc" aria-label="Fechar">×</button></div><div class="ficha-corpo" id="procCorpo"></div></aside>
+      <aside class="ficha painel-filtros" id="painelFiltros" hidden><div class="ficha-cab"><b>Filtros</b><button class="x" id="fechaFiltros" aria-label="Fechar">×</button></div><div class="ficha-corpo" id="filtrosCorpo"></div></aside>
+      <div class="regua-painel" id="reguaPainel" hidden></div>
+      <div class="legenda-pop" id="legendaPop" hidden></div>
+    </div>
+    <div class="vista" id="vista-bateia">
+      <div class="bateia-barra"><span id="bateiaStatus">A Bateia ainda não foi aberta.</span><span class="linha sem-mb"><label class="btn" title="Usar outro arquivo bateia.html (ex.: uma versão mais nova); a ponte com a VIP é acrescentada automaticamente">Outra versão (.html)<input type="file" id="bateiaArquivo" accept=".html,.htm" hidden></label><button class="btn btn-pri" id="enviarBateia" disabled>Analisar a área atual na Bateia</button></span></div>
+      <div id="bateiaHost"><div class="bateia-vazia"><img src="assets/emblema-transparente.png" alt=""><p>A Bateia é o módulo de prospecção mineral da VIP ANALYSIS: geologia em várias escalas, ocorrências (SGB, ANM, USGS), geoquímica, aerogeofísica, relevo, sensoriamento remoto e modelos de depósito.</p><p>Ela recebe a mesma área de interesse. Ligue “Rodar a Bateia junto” em Mineração, ou abra aqui.</p><button class="btn btn-pri" id="abrirBateia">Abrir a Bateia</button></div></div>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <span id="cursorDec">—</span><span id="cursorGMS"></span><span id="cursorUTM"></span><span id="zoomInfo"></span>
+  <span class="dir">Dados oficiais consultados em tempo real · ANM · SGB · ANEEL · EPE · INCRA · SFB · ICMBio · MMA · FUNAI · IPHAN · ANA · INPE · IBGE · DNIT</span>
+</footer>
+
+<div class="modal" id="modal" hidden><div class="modal-caixa"><div id="modalCorpo"></div></div></div>
+<div id="aviso" class="aviso-flutuante" hidden></div>
+
+<script src="lib/leaflet/leaflet.js"></script>
+<script src="lib/geoman/leaflet-geoman.min.js"></script>
+<script src="lib/turf.min.js"></script>
+<script src="lib/proj4.js"></script>
+<script src="lib/jszip.min.js"></script>
+<script src="lib/togeojson.umd.js"></script>
+<script src="lib/shp.min.js"></script>
+<script src="js/util.js"></script>
+<script src="js/catalogo.js"></script>
+<script src="js/catalogo-extra.js"></script>
+<script src="js/mapa.js"></script>
+<script src="js/topografia.js"></script>
+<script src="js/bdgd.js"></script>
+<script src="js/filtros.js"></script>
+<script src="js/analise.js"></script>
+<script src="js/alvo.js"></script>
+<script src="js/requerimento.js"></script>
+<script src="js/favorabilidade.js"></script>
+<script src="js/local.js"></script>
+<script src="js/regras.js"></script>
+<script src="js/relatorio.js"></script>
+<script src="js/slides.js"></script>
+<script src="js/bateia.js"></script>
+<script src="js/busca.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

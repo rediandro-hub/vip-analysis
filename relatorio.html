@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relatório · VIP ANALYSIS</title>
+<link rel="icon" href="assets/icone-64.png">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 13px/1.5 "Segoe UI", Inter, Arial, sans-serif; color: #0b1730; background: #e9edf3; }
+  .barra-topo { max-width: 980px; margin: 18px auto 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 4px; }
+  .barra-topo button { border: 1px solid #1665d8; background: #fff; color: #1665d8; border-radius: 6px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+  .barra-topo button:disabled { opacity: .45; cursor: wait; }
+  .folha { max-width: 980px; margin: 12px auto 24px; background: #fff; box-shadow: 0 2px 18px #0002; }
+  header { display: flex; gap: 24px; align-items: center; padding: 26px 36px 18px; border-bottom: 3px solid #1665d8; }
+  header img { height: 84px; }
+  header .eyebrow { font-size: 10.5px; letter-spacing: .16em; color: #1665d8; font-weight: 700; }
+  header h1 { font-size: 24px; margin: 4px 0; }
+  header .sub { color: #55637a; }
+  main { padding: 22px 36px 30px; }
+  .caixa { padding: 16px 18px; background: #f4f7fb; border-radius: 8px; }
+  .caixa h2 { margin: 0 0 6px; font-size: 16px; }
+  #texto { color: #33425c; }
+  .progresso { height: 8px; background: #dfe7f1; border-radius: 5px; overflow: hidden; margin: 12px 0 8px; }
+  .progresso i { display: block; height: 100%; width: 3%; background: linear-gradient(90deg, #1665d8, #6fb1ff); transition: width .3s; }
+  .progresso.indef i { width: 35%; animation: vai 1.4s ease-in-out infinite; }
+  @keyframes vai { 0% { margin-left: -35%; } 100% { margin-left: 100%; } }
+  #vivo { max-height: 300px; overflow: auto; font-size: 12px; margin-top: 10px; border-top: 1px solid #e3e8ef; }
+  #vivo div { padding: 3px 0; border-bottom: 1px dotted #e3e8ef; display: flex; gap: 8px; }
+  #vivo b { flex: none; width: 70px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; }
+  .s-dentro { color: #a4161a; } .s-proximo { color: #8a5a00; } .s-fora { color: #1f6b4f; } .s-info { color: #1d4ed8; } .s-falha, .s-sem_base { color: #6b7280; }
+  .erro { color: #a4161a; font-weight: 600; }
+  #acoesEspera button { margin-top: 10px; border: 0; background: #1665d8; color: #fff; border-radius: 6px; padding: 9px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+  footer { padding: 12px 36px; font-size: 10.5px; color: #7b879a; border-top: 1px solid #e3e8ef; }
+</style>
+</head>
+<body>
+<div class="barra-topo"><button id="voltar">← Voltar ao mapa</button><span style="font-size:12px;color:#55637a">O relatório aparece aqui assim que todas as fontes responderem.</span></div>
+<div class="folha">
+  <header><img src="assets/logo.jpg" alt="Vip Air Analysis"><div><div class="eyebrow">INTELIGÊNCIA TERRITORIAL</div><h1>Relatório de análise territorial</h1><div class="sub" id="nome">Preparando…</div></div></header>
+  <main>
+    <div class="caixa">
+      <h2 id="titulo">Consultando as fontes oficiais</h2>
+      <div id="texto">Conectando à tela principal da VIP ANALYSIS…</div>
+      <div class="progresso indef" id="prog"><i id="barra"></i></div>
+      <div id="acoesEspera"></div>
+      <div id="vivo"></div>
+    </div>
+  </main>
+  <footer>VIP ANALYSIS · Vip Air · triagem a partir de bases públicas consultadas no momento da emissão; não substitui certidões nem parecer técnico.</footer>
+</div>
+<script src="js/pagina-relatorio.js"></script>
+</body>
+</html>

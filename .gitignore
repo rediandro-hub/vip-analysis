@@ -1,0 +1,40 @@
+# Dados oficiais baixados localmente e bases pesadas
+dados/
+**/dados/
+
+# Relatórios e arquivos gerados
+relatorios/
+**/relatorios/
+*.log
+
+# Credenciais e configurações locais
+.env
+.env.*
+*.pem
+*.key
+*secret*
+*secrets*
+*credential*
+*credentials*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node e ferramentas
+node_modules/
+playwright-report/
+test-results/
+
+# Sistemas operacionais
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Pacotes e cópias locais
+*.zip
+*.rar
+*.7z
+.auditoria/
